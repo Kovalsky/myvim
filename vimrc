@@ -1,16 +1,26 @@
- set nocompatible               " be iMproved 
- filetype off                   " required!  
- set rtp+=~/.vim/bundle/Vundle.vim 
+ set nocompatible               " be iMproved
+ filetype off                   " required!
+ set rtp+=~/.vim/bundle/Vundle.vim
+ set rtp+=/usr/local/opt/fzf
  call vundle#begin()
 
  Plugin 'gmarik/vundle'
+ Plugin 'junegunn/fzf.vim'
+ Plugin 'wincent/ferret'
  Plugin 'tpope/vim-surround'
  Plugin 'tpope/vim-endwise'
- Plugin 'tsaleh/vim-supertab'
+ Plugin 'ervandew/supertab'
  Plugin 'wincent/Command-T'
  Plugin 'mileszs/ack.vim'
  Plugin 'https://github.com/ReekenX/vim-rename2'
  Plugin 'tpope/vim-obsession'
+ Plugin 'terryma/vim-multiple-cursors'
+ Plugin 'bronson/vim-trailing-whitespace'
+ Plugin 'victorfeijo/binding-pry-vim'
+ Plugin 'tonekk/vim-binding-pry'
+ Plugin 'sheerun/vim-polyglot'
+ Plugin 'w0rp/ale'
+ Plugin 'yggdroot/indentline'
 
  Plugin 'vim-ruby/vim-ruby'
  Plugin 'tpope/vim-rails'
@@ -20,43 +30,39 @@
  Plugin 'pangloss/vim-javascript'
  Plugin 'vim-coffee-script'
  Plugin 'https://github.com/scrooloose/nerdtree.git'
- "solorized
+ "themes
  Plugin 'git://github.com/altercation/vim-colors-solarized.git'
+ Plugin 'liuchengxu/space-vim-theme'
+
+ Plugin 'https://github.com/rakr/vim-one'
  Plugin 'https://github.com/shemerey/vim-peepopen.git'
  Plugin 'tpope/vim-fugitive'
+ Plugin 'tpope/vim-rhubarb'
+ Plugin 'shumphrey/fugitive-gitlab.vim'
  Plugin 'tpope/vim-bundler'
  Plugin 'christoomey/vim-tmux-navigator'
  Plugin 'vim-scripts/Conque-Shell'
-
+ Plugin 'https://github.com/ctrlpvim/ctrlp.vim'
+ Plugin 'thoughtbot/vim-rspec'
 
  call vundle#end()
  if 0 | endif
 
- if has('vim_starting')
- if &compatible
-     set nocompatible              
-   endif
 
-   set runtimepath+=~/.vim/bundle/neobundle.vim/
- endif
-
- call neobundle#begin(expand('~/.vim/bundle/'))
-
- NeoBundleFetch 'Shougo/neobundle.vim'
-
-
- call neobundle#end()
 
  filetype plugin indent on
 
- NeoBundleCheck
 
 
  syntax enable
  set t_Co=16
  "let g:solarized_termcolors=256
- colorscheme solarized
- set background=dark
+ "colorscheme solarized
+ "set background=dark
+ "colorscheme space_vim_theme
+ colorscheme one
+ set background=dark " for the dark version
+ " set background=light " for the light version
  set guifont=Monaco:h15
  set backspace=indent,eol,start
  let mapleader = ","
@@ -68,6 +74,9 @@
  set shellpipe=>
  set mouse=a
  set laststatus=2
+ set shell=bash
+
+ setglobal complete-=i
 
  function! MarkWindowSwap()
    let g:markedWinNum = winnr()
@@ -97,23 +106,55 @@
 
  " map jj to Esc
  imap jj <Esc>
+ tnoremap jj <C-\><C-n>
+
+ "CtrlP mappings
+ let g:ctrlp_map = '<c-p>'
+ let g:ctrlp_cmd = 'CtrlP'
+
+ let g:indentLine_char = '¦'
+
+" ALE linter
+let g:ale_linters = {
+\   'ruby': ['ruby', 'rubocop'],
+\   'javascript': ['eslint'],
+\}
+let g:airline#extensions#ale#enabled = 1
+
+
+ "vim-rspec mapping
+ map <Leader>t :call RunCurrentSpecFile()<CR>
+ map <Leader>s :call RunNearestSpec()<CR>
+ map <Leader>l :call RunLastSpec()<CR>
+ map <Leader>a :call RunAllSpecs()<CR>
 
  "Command-T call
- nmap <leader>t :CommandT<CR>
- nmap <leader>ft :CommandTFlush<CR>
- if &term =~ "xterm" || &term =~ "screen"
-   let g:CommandTCancelMap = ['<ESC>', '<C-c>']
- endif
+ "nmap <leader>t :CommandT<CR>
+ "nmap <leader>ft :CommandTFlush<CR>
+ "if &term =~ "xterm" || &term =~ "screen"
+ "  let g:CommandTCancelMap = ['<ESC>', '<C-c>']
+ "endif
 
  "execute rails and rake command with ConqueTerm
  "command -nargs=1 Rails execute ":ConqueTermSplit rails" '<args>'
  "command -nargs=1 Rake execute ":ConqueTermSplit rake" '<args>'
+ "
+
+ "fugitive-gitlab
+ let g:fugitive_gitlab_domains = ['https://git.shiphawk.com']
+ let g:gitlab_api_keys = {'gitlab.com': 'Q_NwFy79ZznWEQksx1TK'}
+
 
  "Better window navigation
  nnoremap <C-l> <C-w>l
  nnoremap <C-j> <C-w>j
  nnoremap <C-k> <C-w>k
- nnoremap <C-h> <C-w>h
+ nnoremap <C-l> <C-w>l
+
+ tnoremap <C-j> <C-w>j
+ tnoremap <C-k> <C-w>k
+ tnoremap <C-h> <C-w>h
+ tnoremap <C-h> <C-w>h
 
 
  "tab commands
@@ -146,13 +187,16 @@
  map <Space>h :call TabMove(-1)<CR>
  map <Space>l :call TabMove(1)<CR>
 
+ au BufEnter *.rb syn match error contained "\<binding.pry\>"
+ au BufEnter *.rb syn match error contained "\<debugger\>"
+
 
  "set clipboard both of system and xterm
  if has('unnamedplus')
      set clipboard=unnamed,unnamedplus
  endif
 
- vnoremap <Leader>a y:Ack <C-r>=fnameescape(@")<CR><CR>
+ vnoremap <Leader>a y:Ag <C-r>=fnameescape(@")<CR><CR>
  ":nnoremap gr :Ack '\b<cword>\b' *<CR>
  ":nnoremap gR :Ack <cword> *<CR>
 
@@ -192,3 +236,4 @@
  "     let @/ = l:pattern
  "     let @" = l:saved_reg
  "endfunction
+ 
